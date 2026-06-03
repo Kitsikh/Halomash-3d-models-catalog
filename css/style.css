@@ -1,11 +1,11 @@
-/* сброс */
+/* сброс стилей — чтобы везде одинаково */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-/* переменные светлой темы */
+/* цвета светлой темы */
 :root {
     --bg-primary: #ffffff;
     --bg-secondary: #f0f0f0;
@@ -17,7 +17,7 @@
     --shadow: rgba(0, 0, 0, 0.1);
 }
 
-/* переменные темной темы */
+/* цвета тёмной темы */
 body.dark-theme {
     --bg-primary: #1a1a1a;
     --bg-secondary: #2d2d2d;
@@ -35,7 +35,8 @@ body {
     line-height: 1.5;
 }
 
-/* боковое меню */
+/* === БОКОВОЕ МЕНЮ === */
+
 .sidebar {
     position: fixed;
     left: 0;
@@ -100,6 +101,7 @@ body {
     color: var(--bg-primary);
 }
 
+/* подсказка при наведении на пункт меню */
 .nav-label {
     position: absolute;
     left: 60px;
@@ -120,6 +122,7 @@ body {
     visibility: visible;
 }
 
+/* кнопка смены темы */
 .theme-btn {
     width: 48px;
     height: 48px;
@@ -136,7 +139,8 @@ body {
     background-color: var(--bg-secondary);
 }
 
-/* верхняя панель */
+/* === ВЕРХНЯЯ ПАНЕЛЬ === */
+
 .top-bar {
     position: fixed;
     top: 0;
@@ -170,6 +174,7 @@ body {
     box-shadow: 0 0 0 3px rgba(230, 0, 23, 0.2);
 }
 
+/* меню пользователя */
 .user-menu {
     position: relative;
 }
@@ -195,6 +200,7 @@ body {
     font-size: 16px;
 }
 
+/* выпадающее меню */
 .dropdown-menu {
     position: absolute;
     right: 0;
@@ -245,57 +251,13 @@ body {
     background-color: var(--bg-secondary);
 }
 
-.setting-row {
-    cursor: default;
-}
-
-/* ползунок темы */
-.theme-switch {
-    position: relative;
-    display: inline-block;
-    width: 40px;
-    height: 22px;
-}
-
-.theme-switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background-color: var(--border);
-    border-radius: 22px;
-}
-
-.slider:before {
-    position: absolute;
-    content: "";
-    height: 16px;
-    width: 16px;
-    left: 3px;
-    bottom: 3px;
-    background-color: white;
-    border-radius: 50%;
-}
-
-input:checked + .slider {
-    background-color: var(--accent);
-}
-
-input:checked + .slider:before {
-    left: 21px;
-}
-
 .logout-btn {
     color: var(--accent);
     font-weight: bold;
 }
 
-/* контент */
+/* === КОНТЕНТ === */
+
 .main-content {
     margin-left: 80px;
     margin-top: 80px;
@@ -303,132 +265,260 @@ input:checked + .slider:before {
     min-height: calc(100vh - 80px);
 }
 
-.page-title {
-    font-size: 28px;
-    font-weight: bold;
-    margin-bottom: 20px;
-}
+/* === ГЛАВНАЯ: MASONRY СЕТКА (PINTEREST-СТИЛЬ) === */
 
-/* каталог */
-.grid-container {
-    column-count: 4;
+.masonry-grid {
+    column-count: 5;
     column-gap: 16px;
 }
 
-.grid-item {
-    break-inside: avoid;
+.masonry-item {
+    display: inline-block;
+    width: 100%;
     margin-bottom: 16px;
-    border-radius: 16px;
-    overflow: hidden;
-    cursor: pointer;
+    break-inside: avoid;
     text-decoration: none;
     color: inherit;
-    display: block;
+    animation: fadeIn 0.3s ease forwards;
+    opacity: 0;
 }
 
-.grid-item-image-wrapper {
+.masonry-image-wrapper {
     position: relative;
-    width: 100%;
+    border-radius: 16px;
+    overflow: hidden;
+    background-color: var(--bg-secondary);
+    transition: transform 0.2s;
 }
 
-.grid-item-image {
+.masonry-item:hover .masonry-image-wrapper {
+    transform: translateY(-4px);
+}
+
+.masonry-image-wrapper img {
     width: 100%;
+    height: auto;
     display: block;
+}
+
+/* заглушка, если нет картинки */
+.masonry-placeholder {
+    width: 100%;
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 64px;
+    font-weight: bold;
+    color: var(--text-secondary);
     background-color: var(--bg-secondary);
 }
 
-.grid-item-placeholder {
+/* меню «⋯» на карточке */
+.masonry-menu {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.masonry-image-wrapper:hover .masonry-menu {
+    opacity: 1;
+}
+
+.masonry-menu-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.masonry-menu-btn:hover {
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
+/* анимация появления карточек */
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+    }
+}
+
+/* === СТРАНИЦА МОДЕЛИ === */
+
+/* контейнер для 3D-вьювера */
+.viewer-wrapper {
     width: 100%;
-    height: 300px;
+    height: 500px;
+    background-color: var(--bg-secondary);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    overflow: hidden;
+}
+
+/* кнопки: Скачать / В избранное */
+.model-actions {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.btn-action {
+    padding: 12px 24px;
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn-action:hover {
+    background-color: var(--bg-secondary);
+    border-color: var(--text-secondary);
+}
+
+/* красная кнопка «Скачать» */
+.btn-download {
+    background-color: #e60023;
+    color: white;
+    border: none;
+}
+
+.btn-download:hover {
+    background-color: #ad081b;
+}
+
+/* блок с информацией о модели */
+.model-info-block {
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+}
+
+.model-title {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.model-subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+}
+
+/* автор модели */
+.author-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+}
+
+.author-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.author-link:hover {
+    opacity: 0.7;
+}
+
+.author-avatar-small {
+    width: 36px;
+    height: 36px;
+    background-color: var(--accent);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.author-name-small {
+    font-weight: 600;
+    font-size: 15px;
+}
+
+/* другие модели (сетка как на Pinterest) */
+.other-models-section {
+    margin-top: 40px;
+}
+
+.other-models-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.other-model-card {
+    text-decoration: none;
+    color: inherit;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.2s;
+    background-color: var(--bg-primary);
+}
+
+.other-model-card:hover {
+    transform: translateY(-4px);
+}
+
+.other-model-card img {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    background-color: var(--bg-secondary);
+    display: block;
+}
+
+.other-model-placeholder {
+    width: 100%;
+    height: 250px;
     background-color: var(--bg-secondary);
     display: flex;
     align-items: center;
     justify-content: center;
-    text-align: center;
-    padding: 20px;
-    color: var(--text-secondary);
+    font-size: 64px;
     font-weight: bold;
-    font-size: 14px;
-    border-radius: 16px 16px 0 0;
-}
-
-.grid-item-info {
-    padding: 10px;
-    background-color: var(--bg-primary);
-}
-
-.grid-item-title {
-    font-size: 14px;
-    font-weight: bold;
-    margin-bottom: 4px;
-}
-
-.grid-item-meta {
-    font-size: 12px;
     color: var(--text-secondary);
 }
 
-/* страница модели */
-.model-viewer-container {
-    width: 100%;
-    height: 600px;
-    max-height: 70vh;
-    background-color: var(--bg-secondary);
-    border-radius: 16px;
-    margin-bottom: 0;
-    overflow: hidden;
-    position: relative;
+/* === АДАПТИВНОСТЬ === */
+
+/* планшеты */
+@media (max-width: 1400px) {
+    .masonry-grid { column-count: 4; }
 }
 
-model-viewer {
-    width: 100%;
-    height: 100%;
-    --poster-color: transparent;
-}
-
-/* кнопки под вьювером */
-.model-actions {
-    display: flex;
-    gap: 12px;
-    margin-top: 16px; /* Отступ от модели */
-    margin-bottom: 24px;
-}
-
-.btn {
-    padding: 12px 24px;
-    border: none;
-    border-radius: 24px;
-    font-weight: 600;
-    cursor: pointer;
-    font-size: 14px;
-    transition: background-color 0.2s;
-}
-
-.btn-primary {
-    background-color: var(--accent);
-    color: white;
-}
-
-.btn-primary:hover {
-    background-color: var(--accent-hover);
-}
-
-.btn-secondary {
-    background-color: var(--bg-secondary);
-    color: var(--text-primary);
-    border: 1px solid var(--border);
-}
-
-.btn-secondary:hover {
-    background-color: var(--border);
-}
-
-/* адаптивность */
 @media (max-width: 1024px) {
-    .grid-container { column-count: 3; }
+    .masonry-grid { column-count: 3; }
 }
 
+/* мобильные */
 @media (max-width: 768px) {
+    /* меню становится нижним */
     .sidebar {
         width: 100%;
         height: 60px;
@@ -457,6 +547,7 @@ model-viewer {
     .nav-label { display: none; }
     .sidebar-bottom { display: none; }
 
+    /* верхняя панель сдвигается */
     .top-bar {
         top: 60px;
         left: 0;
@@ -472,9 +563,47 @@ model-viewer {
         padding: 16px;
     }
 
-    .grid-container { column-count: 2; }
+    /* сетка: 2 колонки */
+    .masonry-grid { 
+        column-count: 2;
+        column-gap: 12px;
+    }
+    
+    .masonry-item {
+        margin-bottom: 12px;
+    }
+    
+    /* кнопки в столбик */
+    .model-actions {
+        flex-direction: column;
+    }
+    
+    .btn-action {
+        width: 100%;
+    }
+    
+    /* другие модели: 2 колонки */
+    .other-models-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .viewer-wrapper {
+        height: 300px;
+    }
+    
+    /* автор в столбик */
+    .author-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
 }
 
+/* очень маленькие экраны */
 @media (max-width: 480px) {
-    .grid-container { column-count: 1; }
+    .masonry-grid { column-count: 2; }
+    
+    .other-models-grid {
+        grid-template-columns: 1fr;
+    }
 }

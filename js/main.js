@@ -1,43 +1,53 @@
-// настройки репозитория
+// Репозиторий с моделями на GitHub
 const REPO_OWNER = "Kitsikh";
 const REPO_NAME = "halomesh-assets";
 
-// красивое название из имени файла
+// Делаем красивое название из имени файла
 function formatTitle(filename) {
     return filename
-        .replace(/\.[^/.]+$/, "")           
-        .replace(/[_-]/g, " ")              
+        .replace(/\.[^/.]+$/, "")
+        .replace(/[_-]/g, " ")
         .replace(/\b\w/g, l => l.toUpperCase());
 }
 
-// получение файлов из папки GitHub
+// Получаем список файлов из папки на GitHub через API
 async function getFilesFromFolder(folderName) {
     const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${folderName}`;
+    
     try {
         const response = await fetch(url);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        if (!response.ok) throw new Error(`Ошибка HTTP: ${response.status}`);
+        
         const data = await response.json();
+        // Оставляем только файлы, игнорируем папки
         return data.filter(item => item.type === "file");
+        
     } catch (error) {
-        console.error(`Ошибка загрузки папки ${folderName}:`, error);
+        console.error(`Не удалось загрузить папку ${folderName}:`, error);
         return [];
     }
 }
 
-// сбор данных о моделях
+// Собираем все данные о моделях: .glb файлы + картинки
 async function fetchModelsData() {
+    // Загружаем списки файлов из обеих папок параллельно
     const [modelsFiles, imagesFiles] = await Promise.all([
         getFilesFromFolder("models"),
         getFilesFromFolder("images")
     ]);
     
+    // Фильтруем только .glb файлы
     const glbFiles = modelsFiles.filter(f => f.name.toLowerCase().endsWith('.glb'));
     
+    // Формируем массив объектов для каталога
     return glbFiles.map((glbFile, index) => {
         const baseName = glbFile.name.replace(/\.glb$/i, "");
+        
+        // Ищем подходящую картинку (похожее имя)
         const matchingImage = imagesFiles.find(img => {
             const imgName = img.name.toLowerCase();
-            return imgName.startsWith(baseName.toLowerCase()) || imgName.includes(baseName.toLowerCase());
+            return imgName.startsWith(baseName.toLowerCase()) || 
+                   imgName.includes(baseName.toLowerCase());
         });
         
         return {
@@ -45,75 +55,104 @@ async function fetchModelsData() {
             title: formatTitle(glbFile.name),
             author: "Kitsikh",
             modelSrc: `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/models/${glbFile.name}`,
+            downloadSrc: `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/models/${glbFile.name}`,
             image: matchingImage ? `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/images/${matchingImage.name}` : null
         };
     });
 }
 
-// отрисовка каталога
-async function loadCatalog() {
+// Каталог
+async function loadCatalog(searchQuery = '') {
     const catalog = document.getElementById("catalog");
+    const loading = document.getElementById("catalog-loading");
+    
     if (!catalog) return;
     
-    catalog.innerHTML = '<p style="text-align:center; padding:40px; color:var(--text-secondary);">Загрузка...</p>';
+    // Показываем "Загрузка..."
+    if (loading) loading.style.display = 'block';
+    catalog.innerHTML = '';
     
     try {
-        const catalogData = await fetchModelsData();
+        let catalogData = await fetchModelsData();
+        
+        // Фильтруем по названию или автору
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase();
+            catalogData = catalogData.filter(model => 
+                model.title.toLowerCase().includes(query) ||
+                model.author.toLowerCase().includes(query)
+            );
+            console.log(`Найдено ${catalogData.length} моделей по запросу "${searchQuery}"`);
+        }
+        
+        // Сохраняем в глобальную переменную
+        window.catalogData = catalogData;
         if (catalogData.length === 0) {
-            catalog.innerHTML = '<p style="text-align:center; padding:40px; color:var(--text-secondary);">Нет моделей</p>';
+            catalog.innerHTML = '<p style="text-align:center; padding:40px; color:var(--text-secondary); grid-column: 1/-1;">Ничего не найдено</p>';
+            if (loading) loading.style.display = 'none';
             return;
         }
         
-        catalog.innerHTML = catalogData.map(model => `
-            <a href="model.html?id=${model.id}" class="grid-item">
-                <div class="grid-item-image-wrapper">
+        // Рендерим карточки
+        catalog.innerHTML = catalogData.map((model, index) => `
+            <a href="model.html?id=${model.id}" class="masonry-item" style="animation-delay: ${index * 0.05}s">
+                <div class="masonry-image-wrapper">
                     ${model.image 
-                        ? `<img src="${model.image}" class="grid-item-image" alt="${model.title}" 
-                                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">`
-                        : ''
+                        ? `<img src="${model.image}" alt="${model.title}" loading="lazy">`
+                        : `<div class="masonry-placeholder">${model.title.charAt(0)}</div>`
                     }
-                    <div class="grid-item-placeholder" style="display: ${model.image ? 'none' : 'flex'};">
-                        <span>${model.title}</span>
+                    <!-- Меню с тремя точками (пока заглушка) -->
+                    <div class="masonry-menu">
+                        <button class="masonry-menu-btn" onclick="event.preventDefault(); event.stopPropagation();">⋯</button>
                     </div>
-                </div>
-                <div class="grid-item-info">
-                    <div class="grid-item-title">${model.title}</div>
-                    <div class="grid-item-meta">Автор: ${model.author}</div>
                 </div>
             </a>
         `).join('');
         
-        window.catalogData = catalogData;
+        console.log(`Загружено ${catalogData.length} моделей`);
+        
     } catch (error) {
-        console.error("Ошибка загрузки каталога:", error);
-        catalog.innerHTML = '<p style="text-align:center; padding:40px; color:var(--text-secondary);">Ошибка загрузки</p>';
+        console.error("Ошибка при загрузке каталога:", error);
+        catalog.innerHTML = '<p style="text-align:center; padding:40px; color:var(--text-secondary); grid-column: 1/-1;">Ошибка загрузки. Проверьте интернет.</p>';
+    } finally {
+        // Скрываем индикатор загрузки
+        if (loading) loading.style.display = 'none';
     }
 }
 
 // страница модели
 async function loadModelPage() {
-    const container = document.getElementById("model-full-view");
+    const container = document.getElementById("model-page-content");
     if (!container) return;
     
+    // Получаем id модели из URL
     const urlParams = new URLSearchParams(window.location.search);
     const modelId = parseInt(urlParams.get("id"));
     
-    container.innerHTML = '<p style="text-align:center; padding:40px; color:var(--text-secondary);">Загрузка...</p>';
+    container.innerHTML = '<div style="text-align:center; padding:60px; color:var(--text-secondary);">Загрузка...</div>';
     
     try {
+        // Если данные ещё не загружены — грузим
         if (!window.catalogData) window.catalogData = await fetchModelsData();
         
+        // Ищем нужную модель по id
         const model = window.catalogData.find(m => m.id === modelId);
         if (!model) {
-            container.innerHTML = '<p style="padding:40px; text-align:center; color:var(--text-secondary);">Модель не найдена</p>';
+            container.innerHTML = '<div style="text-align:center; padding:60px; color:var(--text-secondary);">Модель не найдена</div>';
             return;
         }
         
-        document.querySelector(".page-title").textContent = model.title;
+        // Проверяем, в избранном ли модель
+        const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+        const isFavorite = favorites.includes(modelId);
         
-        // Вставляем: СНАЧАЛА вьювер, ПОТОМ кнопки
+        // Другие модели
+        const otherModels = window.catalogData.filter(m => m.id !== modelId).slice(0, 8);
+        
+        // Собираем всю разметку страницы
         container.innerHTML = `
-            <div class="model-viewer-container">
+            <!-- 3D Вьювер -->
+            <div class="viewer-wrapper">
                 <model-viewer 
                     src="${model.modelSrc}" 
                     alt="${model.title}"
@@ -123,40 +162,156 @@ async function loadModelPage() {
                     style="width: 100%; height: 100%;">
                 </model-viewer>
             </div>
+            
+            <!-- Кнопки: Скачать и В избранное -->
             <div class="model-actions">
-                <button class="btn btn-primary">Скачать .STL</button>
-                <button class="btn btn-secondary">В избранное</button>
+                <button class="btn-action btn-download" onclick="handleDownload('${model.downloadSrc}', '${model.title}.glb')">
+                    Скачать
+                </button>
+                <button class="btn-action" onclick="toggleFavorite(${modelId}, this)">
+                    ${isFavorite ? '✓ В избранном' : '☆ В избранное'}
+                </button>
+            </div>
+            
+            <!-- Информация: название, автор -->
+            <div class="model-info-block">
+                <h1 class="model-title">${model.title}</h1>
+                <p class="model-subtitle">3D Model</p>
+                
+                <div class="author-row">
+                    <a href="#" class="author-link" onclick="event.preventDefault();">
+                        <div class="author-avatar-small">К</div>
+                        <span class="author-name-small">${model.author}</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Блок "Другие модели" (как на Pinterest) -->
+            <div class="other-models-section">
+                <div class="other-models-grid">
+                    ${otherModels.map(other => `
+                        <a href="model.html?id=${other.id}" class="other-model-card">
+                            ${other.image 
+                                ? `<img src="${other.image}" alt="${other.title}">`
+                                : `<div class="other-model-placeholder">${other.title.charAt(0)}</div>`
+                            }
+                        </a>
+                    `).join('')}
+                </div>
             </div>
         `;
         
     } catch (error) {
-        console.error("Ошибка загрузки модели:", error);
-        container.innerHTML = '<p style="padding:40px; text-align:center; color:var(--text-secondary);">Ошибка загрузки</p>';
+        console.error("Ошибка при загрузке страницы модели:", error);
+        container.innerHTML = '<div style="text-align:center; padding:60px; color:var(--text-secondary);">Ошибка загрузки</div>';
     }
 }
 
-// переключение темы
-const themeBtn = document.getElementById("theme-toggle");
-if (themeBtn) {
-    if (localStorage.getItem("theme") === "dark") document.body.classList.add("dark-theme");
-    themeBtn.addEventListener("click", () => {
-        document.body.classList.toggle("dark-theme");
-        localStorage.setItem("theme", document.body.classList.contains("dark-theme") ? "dark" : "light");
+// Скачивание файла
+function handleDownload(url, filename) {
+    // Создаём невидимую ссылку и кликаем по ней
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.target = '_blank';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
+    console.log(`Скачано: ${filename}`);
+}
+
+// Добавить/убрать из избранного
+function toggleFavorite(modelId, btn) {
+    let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+    const index = favorites.indexOf(modelId);
+    
+    if (index > -1) {
+        // Убираем из избранного
+        favorites.splice(index, 1);
+        btn.textContent = '☆ В избранное';
+    } else {
+        // Добавляем в избранное
+        favorites.push(modelId);
+        btn.textContent = '✓ В избранном';
+    }
+    
+    // Сохраняем обратно в localStorage
+    localStorage.setItem('favorites', JSON.stringify(favorites));
+    console.log(`Избранное обновлено: ${favorites.length} моделей`);
+}
+
+// настройки интерфейса 
+
+// Поиск с задержкой (чтобы не дёргать API при каждом символе)
+function setupSearch() {
+    const searchInput = document.querySelector('.search-input');
+    if (!searchInput) return;
+    
+    let timeout = null;
+    searchInput.addEventListener('input', (e) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+            loadCatalog(e.target.value);
+        }, 300);
     });
 }
 
-// меню пользователя
-const avatarBtn = document.getElementById("avatar-toggle");
-const dropdown = document.getElementById("user-dropdown");
-if (avatarBtn && dropdown) {
-    avatarBtn.addEventListener("click", () => dropdown.classList.toggle("show"));
-    document.addEventListener("click", (e) => {
-        if (!dropdown.contains(e.target) && e.target !== avatarBtn) dropdown.classList.remove("show");
-    });
+// Переключение тёмной/светлой темы
+function setupTheme() {
+    const themeBtn = document.getElementById("theme-toggle");
+    if (themeBtn) {
+        // Проверяем сохранённую тему
+        if (localStorage.getItem("theme") === "dark") {
+            document.body.classList.add("dark-theme");
+        }
+        
+        themeBtn.addEventListener("click", () => {
+            document.body.classList.toggle("dark-theme");
+            const isDark = document.body.classList.contains("dark-theme");
+            localStorage.setItem("theme", isDark ? "dark" : "light");
+        });
+    }
 }
 
-// запуск
+// Выпадающее меню пользователя
+function setupUserMenu() {
+    const avatarBtn = document.getElementById("avatar-toggle");
+    const dropdown = document.getElementById("user-dropdown");
+    
+    if (avatarBtn && dropdown) {
+        // Открыть/закрыть меню при клике на аватар
+        avatarBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            dropdown.classList.toggle("show");
+        });
+        
+        // Закрыть меню при клике в любом другом месте
+        document.addEventListener("click", (e) => {
+            if (!dropdown.contains(e.target) && e.target !== avatarBtn) {
+                dropdown.classList.remove("show");
+            }
+        });
+    }
+}
+
+// Запуск при загрузке страницы
 document.addEventListener("DOMContentLoaded", () => {
-    if (document.getElementById("catalog")) loadCatalog();
-    if (document.getElementById("model-full-view")) loadModelPage();
+    console.log("HaloMesh загружен 🚀");
+    
+    // Инициализируем всё
+    setupTheme();
+    setupUserMenu();
+    setupSearch();
+    
+    // Загружаем контент в зависимости от страницы
+    if (document.getElementById("catalog")) {
+        console.log("Загружаем каталог...");
+        loadCatalog();
+    }
+    
+    if (document.getElementById("model-page-content")) {
+        console.log("Загружаем страницу модели...");
+        loadModelPage();
+    }
 });
