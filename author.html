@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Профиль автора - HaloMesh</title>
+    <title>Автор - HaloMesh</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -13,8 +13,7 @@
             <nav class="sidebar-nav">
                 <a href="index.html" class="nav-link">Г<span class="nav-label">Главная</span></a>
                 <a href="favorites.html" class="nav-link">И<span class="nav-label">Избранное</span></a>
-                <a href="authors.html" class="nav-link active">А<span class="nav-label">Авторы</span></a>
-                <a href="guide.html" class="nav-link">Г<span class="nav-label">Гайд</span></a>
+                <a href="authors.html" class="nav-link">А<span class="nav-label">Авторы</span></a>
             </nav>
         </div>
         <div class="sidebar-bottom">
@@ -30,13 +29,25 @@
             <button class="avatar-btn" id="avatar-toggle">
                 <div class="avatar-circle">К</div>
             </button>
+            <div class="dropdown-menu" id="user-dropdown">
+                <div class="dropdown-header">
+                    <div class="dropdown-avatar">К</div>
+                </div>
+                <div class="dropdown-divider"></div>
+                <a href="guide.html" class="dropdown-item">
+                    <span>Помощь</span>
+                </a>
+                <button class="dropdown-item logout-btn" onclick="handleLogout()">
+                    <span>Выход</span>
+                </button>
+            </div>
         </div>
     </header>
 
     <main class="main-content">
-        <h1 class="page-title">Профиль автора</h1>
-        <div id="author-models"></div>
+        <div id="author-page-content"></div>
     </main>
+    
     <script src="js/main.js" defer></script>
 </body>
 </html>

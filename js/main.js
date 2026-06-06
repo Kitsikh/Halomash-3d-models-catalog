@@ -2,6 +2,15 @@
 const REPO_OWNER = "Kitsikh";
 const REPO_NAME = "halomesh-assets";
 
+// Список авторов
+const AUTHORS = [
+    "Kitsikh",
+    "Alex3D",
+    "ModelMaster",
+    "PrintCraft",
+    "DesignPro"
+];
+
 // Делаем красивое название из имени файла
 function formatTitle(filename) {
     return filename
@@ -50,10 +59,14 @@ async function fetchModelsData() {
                    imgName.includes(baseName.toLowerCase());
         });
         
+        // Распределяем авторов по id (стабильно)
+        const authorIndex = index % AUTHORS.length;
+        const author = AUTHORS[authorIndex];
+        
         return {
             id: index + 1,
             title: formatTitle(glbFile.name),
-            author: "Kitsikh",
+            author: author,
             modelSrc: `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/models/${glbFile.name}`,
             downloadSrc: `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/models/${glbFile.name}`,
             image: matchingImage ? `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/images/${matchingImage.name}` : null
@@ -67,8 +80,7 @@ async function loadCatalog(searchQuery = '') {
     const loading = document.getElementById("catalog-loading");
     
     if (!catalog) return;
-    
-    // Показываем "Загрузка..."
+
     if (loading) loading.style.display = 'block';
     catalog.innerHTML = '';
     
@@ -88,7 +100,7 @@ async function loadCatalog(searchQuery = '') {
         window.catalogData = catalogData;
         
         if (catalogData.length === 0) {
-            catalog.innerHTML = '<p style="text-align:center; padding:40px; color:var(--text-secondary); grid-column: 1/-1;">Ничего не найдено</p>';
+            catalog.innerHTML = '<p style="text-align:center; padding:40px; color:var(--text-secondary);">Ничего не найдено</p>';
             if (loading) loading.style.display = 'none';
             return;
         }
@@ -109,7 +121,7 @@ async function loadCatalog(searchQuery = '') {
                             }
                         </a>
                         <div class="masonry-overlay">
-                            <button class="overlay-btn overlay-save" onclick="toggleFavoriteFromGrid(${model.id}, this)">
+                            <button class="overlay-btn overlay-save ${isFavorite ? 'saved' : ''}" onclick="toggleFavoriteFromGrid(${model.id}, this)">
                                 ${isFavorite ? 'сохранено' : 'сохранить'}
                             </button>
                             <button class="overlay-btn overlay-download" onclick="handleDownload('${model.downloadSrc}', '${model.title}.glb')">
@@ -123,9 +135,8 @@ async function loadCatalog(searchQuery = '') {
         
     } catch (error) {
         console.error("Ошибка при загрузке каталога:", error);
-        catalog.innerHTML = '<p style="text-align:center; padding:40px; color:var(--text-secondary); grid-column: 1/-1;">Ошибка загрузки. Проверьте интернет.</p>';
+        catalog.innerHTML = '<p style="text-align:center; padding:40px; color:var(--text-secondary);">Ошибка загрузки. Проверьте интернет.</p>';
     } finally {
-        // Скрываем индикатор загрузки
         if (loading) loading.style.display = 'none';
     }
 }
@@ -186,8 +197,8 @@ async function loadModelPage() {
                 <p class="model-subtitle">3D Model</p>
                 
                 <div class="author-row">
-                    <a href="#" class="author-link" onclick="event.preventDefault();">
-                        <div class="author-avatar-small">К</div>
+                    <a href="author.html?name=${encodeURIComponent(model.author)}" class="author-link">
+                        <div class="author-avatar-small">${model.author.charAt(0)}</div>
                         <span class="author-name-small">${model.author}</span>
                     </a>
                 </div>
@@ -252,9 +263,11 @@ function toggleFavoriteFromGrid(modelId, btn) {
     if (index > -1) {
         favorites.splice(index, 1);
         btn.textContent = 'сохранить';
+        btn.classList.remove('saved');
     } else {
         favorites.push(modelId);
         btn.textContent = 'сохранено';
+        btn.classList.add('saved');
     }
     
     localStorage.setItem('favorites', JSON.stringify(favorites));
@@ -318,7 +331,7 @@ async function loadFavorites() {
         
     } catch (error) {
         console.error("Ошибка при загрузке избранного:", error);
-        grid.innerHTML = '<p style="text-align:center; padding:40px; color:var(--text-secondary); grid-column: 1/-1;">Ошибка загрузки</p>';
+        grid.innerHTML = '<p style="text-align:center; padding:40px; color:var(--text-secondary);">Ошибка загрузки</p>';
     } finally {
         if (loading) loading.style.display = 'none';
     }
@@ -372,7 +385,270 @@ function getModelsWord(count) {
     return 'моделей';
 }
 
-// Поиск с задержкой (чтобы не дёргать API при каждом символе)
+// Склонение слова "автор"
+function getAuthorsWord(count) {
+    const lastTwo = count % 100;
+    const lastOne = count % 10;
+    
+    if (lastTwo >= 11 && lastTwo <= 19) return 'авторов';
+    if (lastOne === 1) return 'автор';
+    if (lastOne >= 2 && lastOne <= 4) return 'автора';
+    return 'авторов';
+}
+
+// Страница авторов
+async function loadAuthorsPage() {
+    const container = document.getElementById("authors-page-content");
+    if (!container) return;
+    
+    container.innerHTML = '<div style="text-align:center; padding:60px; color:var(--text-secondary);">Загрузка...</div>';
+    
+    try {
+        // Загружаем данные если ещё не загружены
+        if (!window.catalogData) window.catalogData = await fetchModelsData();
+        
+        // Группируем модели по авторам
+        const authorsMap = {};
+        window.catalogData.forEach(model => {
+            if (!authorsMap[model.author]) {
+                authorsMap[model.author] = [];
+            }
+            authorsMap[model.author].push(model);
+        });
+        
+        // Проверяем что уже в избранном
+        const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+        
+        // Рендерим страницу
+        container.innerHTML = `
+            <h1 class="authors-page-title">Авторы</h1>
+            
+            ${Object.entries(authorsMap).map(([authorName, models]) => `
+                <div class="author-block">
+                    <div class="author-card">
+                        <a href="author.html?name=${encodeURIComponent(authorName)}" class="author-card-clickable">
+                            <div class="author-card-left">
+                                <div class="author-card-avatar">${authorName.charAt(0)}</div>
+                                <div class="author-card-info">
+                                    <h2 class="author-card-name">${authorName}</h2>
+                                    <p class="author-card-stats">${models.length} ${getModelsWord(models.length)}</p>
+                                </div>
+                            </div>
+                        </a>
+                        <button class="toggle-models-btn" onclick="event.stopPropagation(); toggleAuthorModels('${authorName}', this)">
+                            показать модели
+                        </button>
+                    </div>
+                    
+                    <div class="authors-models-row" id="author-models-${authorName}" style="display: none;">
+                        ${models.slice(0, 10).map((model, index) => {
+                            const isFavorite = favorites.includes(model.id);
+                            return `
+                                <div class="masonry-item">
+                                    <div class="masonry-image-wrapper">
+                                        <a href="model.html?id=${model.id}" class="masonry-link">
+                                            ${model.image 
+                                                ? `<img src="${model.image}" alt="${model.title}" loading="lazy">`
+                                                : `<div class="masonry-placeholder">${model.title.charAt(0)}</div>`
+                                            }
+                                        </a>
+                                        <div class="masonry-overlay">
+                                            <button class="overlay-btn overlay-save ${isFavorite ? 'saved' : ''}" onclick="toggleFavoriteFromGrid(${model.id}, this)">
+                                                ${isFavorite ? 'сохранено' : 'сохранить'}
+                                            </button>
+                                            <button class="overlay-btn overlay-download" onclick="handleDownload('${model.downloadSrc}', '${model.title}.glb')">
+                                                скачать
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `).join('')}
+        `;
+        
+    } catch (error) {
+        console.error("Ошибка при загрузке страницы авторов:", error);
+        container.innerHTML = '<div style="text-align:center; padding:60px; color:var(--text-secondary);">Ошибка загрузки</div>';
+    }
+}
+
+// Раскрыть/скрыть модели автора
+function toggleAuthorModels(authorName, btn) {
+    const modelsRow = document.getElementById(`author-models-${authorName}`);
+    if (!modelsRow) return;
+    
+    if (modelsRow.style.display === 'none') {
+        modelsRow.style.display = 'flex';
+        btn.textContent = 'скрыть модели';
+    } else {
+        modelsRow.style.display = 'none';
+        btn.textContent = 'показать модели';
+    }
+}
+
+// Страница одного автора
+async function loadAuthorPage() {
+    const container = document.getElementById("author-page-content");
+    if (!container) return;
+    
+    // Получаем имя автора из URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const authorName = urlParams.get("name");
+    
+    container.innerHTML = '<div style="text-align:center; padding:60px; color:var(--text-secondary);">Загрузка...</div>';
+    
+    try {
+        // Загружаем данные если ещё не загружены
+        if (!window.catalogData) window.catalogData = await fetchModelsData();
+        
+        // Фильтруем модели этого автора
+        const authorModels = window.catalogData.filter(m => m.author === authorName);
+        
+        // Если автор не найден
+        if (authorModels.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding:60px; color:var(--text-secondary);">Автор не найден</div>';
+            return;
+        }
+        
+        // Проверяем что уже в избранном
+        const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+        
+        // Проверяем подписку
+        const subscriptions = JSON.parse(localStorage.getItem('subscriptions') || '[]');
+        const isSubscribed = subscriptions.includes(authorName);
+        
+        // Рендерим страницу
+        container.innerHTML = `
+            <div class="author-header">
+                <div class="author-header-top">
+                    <div class="author-avatar-large">${authorName.charAt(0)}</div>
+                    <div class="author-header-info">
+                        <h1 class="author-name-large">${authorName}</h1>
+                        <p class="author-stats">${authorModels.length} ${getModelsWord(authorModels.length)}</p>
+                        <div class="author-buttons">
+                            <button class="btn-secondary">Отправить сообщение</button>
+                            <button class="btn-primary" id="subscribe-btn" onclick="toggleSubscription('${authorName}', this)">
+                                ${isSubscribed ? 'Вы подписаны' : 'Подписаться'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="author-tabs">
+                <button class="tab-btn active" onclick="switchTab('created', '${authorName}', this)">Созданные</button>
+                <button class="tab-btn" onclick="switchTab('saved', '${authorName}', this)">Сохраненные</button>
+            </div>
+            
+            <div id="author-models-container">
+                <div class="masonry-grid">
+                    ${authorModels.map((model, index) => {
+                        const isFavorite = favorites.includes(model.id);
+                        return `
+                            <div class="masonry-item" style="animation-delay: ${index * 0.05}s">
+                                <div class="masonry-image-wrapper">
+                                    <a href="model.html?id=${model.id}" class="masonry-link">
+                                        ${model.image 
+                                            ? `<img src="${model.image}" alt="${model.title}" loading="lazy">`
+                                            : `<div class="masonry-placeholder">${model.title.charAt(0)}</div>`
+                                        }
+                                    </a>
+                                    <div class="masonry-overlay">
+                                        <button class="overlay-btn overlay-save ${isFavorite ? 'saved' : ''}" onclick="toggleFavoriteFromGrid(${model.id}, this)">
+                                            ${isFavorite ? 'сохранено' : 'сохранить'}
+                                        </button>
+                                        <button class="overlay-btn overlay-download" onclick="handleDownload('${model.downloadSrc}', '${model.title}.glb')">
+                                            скачать
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+        `;
+        
+    } catch (error) {
+        console.error("Ошибка при загрузке страницы автора:", error);
+        container.innerHTML = '<div style="text-align:center; padding:60px; color:var(--text-secondary);">Ошибка загрузки</div>';
+    }
+}
+
+// Подписаться/отписаться
+function toggleSubscription(authorName, btn) {
+    let subscriptions = JSON.parse(localStorage.getItem('subscriptions') || '[]');
+    const index = subscriptions.indexOf(authorName);
+    
+    if (index > -1) {
+        // Отписаться
+        subscriptions.splice(index, 1);
+        btn.textContent = 'Подписаться';
+    } else {
+        // Подписаться
+        subscriptions.push(authorName);
+        btn.textContent = 'Вы подписаны';
+    }
+    
+    localStorage.setItem('subscriptions', JSON.stringify(subscriptions));
+}
+
+// Переключить таб (Созданные / Сохраненные)
+function switchTab(tab, authorName, btn) {
+    // Обновляем активный таб
+    const tabs = btn.parentElement.querySelectorAll('.tab-btn');
+    tabs.forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    
+    const container = document.getElementById("author-models-container");
+    
+    if (tab === 'created') {
+        // Показываем модели автора
+        const authorModels = window.catalogData.filter(m => m.author === authorName);
+        const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+        
+        container.innerHTML = `
+            <div class="masonry-grid">
+                ${authorModels.map((model, index) => {
+                    const isFavorite = favorites.includes(model.id);
+                    return `
+                        <div class="masonry-item" style="animation-delay: ${index * 0.05}s">
+                            <div class="masonry-image-wrapper">
+                                <a href="model.html?id=${model.id}" class="masonry-link">
+                                    ${model.image 
+                                        ? `<img src="${model.image}" alt="${model.title}" loading="lazy">`
+                                        : `<div class="masonry-placeholder">${model.title.charAt(0)}</div>`
+                                    }
+                                </a>
+                                <div class="masonry-overlay">
+                                    <button class="overlay-btn overlay-save ${isFavorite ? 'saved' : ''}" onclick="toggleFavoriteFromGrid(${model.id}, this)">
+                                        ${isFavorite ? 'сохранено' : 'сохранить'}
+                                    </button>
+                                    <button class="overlay-btn overlay-download" onclick="handleDownload('${model.downloadSrc}', '${model.title}.glb')">
+                                        скачать
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+    } else if (tab === 'saved') {
+        // Показываем пустой список (без иконки)
+        container.innerHTML = `
+            <div style="text-align:center; padding:60px 20px;">
+                <h2 style="font-size:24px; margin-bottom:8px;">Пока пусто</h2>
+                <p style="color:var(--text-secondary);">У этого автора пока нет сохраненных моделей</p>
+            </div>
+        `;
+    }
+}
+
+// Поиск с задержкой
 function setupSearch() {
     const searchInput = document.querySelector('.search-input');
     if (!searchInput) return;
@@ -434,4 +710,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (document.getElementById("catalog")) loadCatalog();
     if (document.getElementById("model-page-content")) loadModelPage();
     if (document.getElementById("favorites-grid")) loadFavorites();
+    if (document.getElementById("authors-page-content")) loadAuthorsPage();
+    if (document.getElementById("author-page-content")) loadAuthorPage();
 });

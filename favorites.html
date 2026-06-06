@@ -14,7 +14,6 @@
                 <a href="index.html" class="nav-link">Г<span class="nav-label">Главная</span></a>
                 <a href="favorites.html" class="nav-link active">И<span class="nav-label">Избранное</span></a>
                 <a href="authors.html" class="nav-link">А<span class="nav-label">Авторы</span></a>
-                <a href="guide.html" class="nav-link">Г<span class="nav-label">Гайд</span></a>
             </nav>
         </div>
         <div class="sidebar-bottom">
@@ -30,20 +29,29 @@
             <button class="avatar-btn" id="avatar-toggle">
                 <div class="avatar-circle">К</div>
             </button>
+            <div class="dropdown-menu" id="user-dropdown">
+                <div class="dropdown-header">
+                    <div class="dropdown-avatar">К</div>
+                </div>
+                <div class="dropdown-divider"></div>
+                <a href="guide.html" class="dropdown-item">
+                    <span>Помощь</span>
+                </a>
+                <button class="dropdown-item logout-btn" onclick="handleLogout()">
+                    <span>Выход</span>
+                </button>
+            </div>
         </div>
     </header>
 
     <main class="main-content">
-        <!-- Заголовок страницы -->
         <div class="page-header">
             <h1 class="page-title">Избранное</h1>
             <p class="page-subtitle" id="favorites-count">0 моделей</p>
         </div>
         
-        <!-- Сетка избранного (такая же как на главной) -->
         <div class="masonry-grid" id="favorites-grid"></div>
         
-        <!-- Пустое состояние -->
         <div id="favorites-empty" style="display:none; text-align:center; padding:60px 20px;">
             <div style="font-size:64px; margin-bottom:16px;">♡</div>
             <h2 style="font-size:24px; margin-bottom:8px;">Пока пусто</h2>
@@ -51,7 +59,6 @@
             <a href="index.html" class="btn-action btn-download" style="display:inline-block; text-decoration:none;">Перейти к каталогу</a>
         </div>
         
-        <!-- Загрузка -->
         <div id="favorites-loading" style="text-align:center; padding:40px; color:var(--text-secondary);">
             Загрузка...
         </div>

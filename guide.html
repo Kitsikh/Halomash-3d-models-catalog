@@ -14,7 +14,6 @@
                 <a href="index.html" class="nav-link">Г<span class="nav-label">Главная</span></a>
                 <a href="favorites.html" class="nav-link">И<span class="nav-label">Избранное</span></a>
                 <a href="authors.html" class="nav-link">А<span class="nav-label">Авторы</span></a>
-                <a href="guide.html" class="nav-link active">Г<span class="nav-label">Гайд</span></a>
             </nav>
         </div>
         <div class="sidebar-bottom">
@@ -30,13 +29,181 @@
             <button class="avatar-btn" id="avatar-toggle">
                 <div class="avatar-circle">К</div>
             </button>
+            <div class="dropdown-menu" id="user-dropdown">
+                <div class="dropdown-header">
+                    <div class="dropdown-avatar">К</div>
+                </div>
+                <div class="dropdown-divider"></div>
+                <a href="guide.html" class="dropdown-item">
+                    <span>Помощь</span>
+                </a>
+                <button class="dropdown-item logout-btn" onclick="handleLogout()">
+                    <span>Выход</span>
+                </button>
+            </div>
         </div>
     </header>
 
     <main class="main-content">
-        <h1 class="page-title">Гайд</h1>
-        <div id="guide-content"></div>
+        <div class="guide-container">
+            <h1 class="guide-title">Гайд по 3D-печати</h1>
+            
+            <section id="setup" class="guide-section">
+                <h2 class="guide-section-title">1. Настройка принтера</h2>
+                
+                <div class="guide-block">
+                    <h3>Калибровка стола</h3>
+                    <ol>
+                        <li>Нагрейте стол и сопло до рабочих температур</li>
+                        <li>Отключите моторы осей</li>
+                        <li>Возьмите лист бумаги A4</li>
+                        <li>Переместите сопло в каждый угол стола</li>
+                        <li>Регулируйте винты так, чтобы бумага двигалась с небольшим сопротивлением</li>
+                        <li>Повторите 2-3 раза для всех углов</li>
+                    </ol>
+                    <div class="screenshot-placeholder">
+                        <p>Скриншот: Калибровка стола</p>
+                    </div>
+                </div>
+
+                <div class="guide-block">
+                    <h3>Температура печати</h3>
+                    <table class="guide-table">
+                        <thead>
+                            <tr>
+                                <th>Материал</th>
+                                <th>Сопло</th>
+                                <th>Стол</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>PLA</td>
+                                <td>190-210°C</td>
+                                <td>50-60°C</td>
+                            </tr>
+                            <tr>
+                                <td>PETG</td>
+                                <td>230-250°C</td>
+                                <td>70-80°C</td>
+                            </tr>
+                            <tr>
+                                <td>ABS</td>
+                                <td>240-260°C</td>
+                                <td>90-110°C</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="slicing" class="guide-section">
+                <h2 class="guide-section-title">2. Подготовка моделей</h2>
+                
+                <div class="guide-block">
+                    <h3>Основные настройки слайсера</h3>
+                    <div class="settings-grid">
+                        <div class="setting-card">
+                            <h4>Качество</h4>
+                            <ul>
+                                <li>Высота слоя: 0.2мм</li>
+                                <li>Первый слой: 0.3мм</li>
+                            </ul>
+                        </div>
+                        <div class="setting-card">
+                            <h4>Стенки</h4>
+                            <ul>
+                                <li>Толщина: 0.8мм</li>
+                                <li>Верх/низ: 0.8мм</li>
+                            </ul>
+                        </div>
+                        <div class="setting-card">
+                            <h4>Заполнение</h4>
+                            <ul>
+                                <li>Плотность: 15-20%</li>
+                                <li>Паттерн: Grid</li>
+                            </ul>
+                        </div>
+                        <div class="setting-card">
+                            <h4>Скорость</h4>
+                            <ul>
+                                <li>Печать: 50мм/с</li>
+                                <li>Первый слой: 20мм/с</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="screenshot-placeholder">
+                        <p>Скриншот: Настройки Cura</p>
+                    </div>
+                </div>
+
+                <div class="guide-block">
+                    <h3>Поддержки</h3>
+                    <p>Нужны когда:</p>
+                    <ul>
+                        <li>Углы больше 45°</li>
+                        <li>Нависающие элементы</li>
+                        <li>Мосты длиннее 10мм</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="materials" class="guide-section">
+                <h2 class="guide-section-title">3. Материалы</h2>
+                
+                <div class="materials-grid">
+                    <div class="material-card">
+                        <h3>PLA</h3>
+                        <p>Самый популярный материал. Легко печатается.</p>
+                        <h4>Плюсы:</h4>
+                        <ul>
+                            <li>Прост в печати</li>
+                            <li>Нет запаха</li>
+                            <li>Много цветов</li>
+                        </ul>
+                        <h4>Минусы:</h4>
+                        <ul>
+                            <li>Хрупкий</li>
+                            <li>Боится температуры</li>
+                        </ul>
+                    </div>
+
+                    <div class="material-card">
+                        <h3>PETG</h3>
+                        <p>Прочнее PLA, для функциональных деталей.</p>
+                        <h4>Плюсы:</h4>
+                        <ul>
+                            <li>Прочный</li>
+                            <li>Гибкий</li>
+                            <li>Водостойкий</li>
+                        </ul>
+                        <h4>Минусы:</h4>
+                        <ul>
+                            <li>Тяжело удалить поддержки</li>
+                            <li>Может тянуться</li>
+                        </ul>
+                    </div>
+
+                    <div class="material-card">
+                        <h3>ABS</h3>
+                        <p>Профессиональный материал. Требует закрытой камеры.</p>
+                        <h4>Плюсы:</h4>
+                        <ul>
+                            <li>Очень прочный</li>
+                            <li>Термостойкий</li>
+                            <li>Можно склеивать ацетоном</li>
+                        </ul>
+                        <h4>Минусы:</h4>
+                        <ul>
+                            <li>Токсичные пары</li>
+                            <li>Нужна закрытая камера</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </div>
     </main>
+    
     <script src="js/main.js" defer></script>
 </body>
 </html>
