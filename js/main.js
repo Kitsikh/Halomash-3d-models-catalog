@@ -28,7 +28,6 @@ async function getFilesFromFolder(folderName) {
         if (!response.ok) throw new Error(`Ошибка HTTP: ${response.status}`);
         
         const data = await response.json();
-        // Оставляем только файлы, игнорируем папки
         return data.filter(item => item.type === "file");
         
     } catch (error) {
@@ -37,29 +36,24 @@ async function getFilesFromFolder(folderName) {
     }
 }
 
-// Собираем все данные о моделях: .glb файлы + картинки
+// Собираем все данные о моделях
 async function fetchModelsData() {
-    // Загружаем списки файлов из обеих папок параллельно
     const [modelsFiles, imagesFiles] = await Promise.all([
         getFilesFromFolder("models"),
         getFilesFromFolder("images")
     ]);
     
-    // Фильтруем только .glb файлы
     const glbFiles = modelsFiles.filter(f => f.name.toLowerCase().endsWith('.glb'));
     
-    // Формируем массив объектов для каталога
     return glbFiles.map((glbFile, index) => {
         const baseName = glbFile.name.replace(/\.glb$/i, "");
         
-        // Ищем подходящую картинку (похожее имя)
         const matchingImage = imagesFiles.find(img => {
             const imgName = img.name.toLowerCase();
             return imgName.startsWith(baseName.toLowerCase()) || 
                    imgName.includes(baseName.toLowerCase());
         });
         
-        // Распределяем авторов по id (стабильно)
         const authorIndex = index % AUTHORS.length;
         const author = AUTHORS[authorIndex];
         
@@ -69,7 +63,8 @@ async function fetchModelsData() {
             author: author,
             modelSrc: `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/models/${glbFile.name}`,
             downloadSrc: `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/models/${glbFile.name}`,
-            image: matchingImage ? `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/images/${matchingImage.name}` : null
+            image: matchingImage ? `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/images/${matchingImage.name}` : null,
+            authorAvatar: `img/${author}.png`
         };
     });
 }
@@ -87,7 +82,6 @@ async function loadCatalog(searchQuery = '') {
     try {
         let catalogData = await fetchModelsData();
         
-        // Фильтруем по названию или автору
         if (searchQuery) {
             const query = searchQuery.toLowerCase();
             catalogData = catalogData.filter(model => 
@@ -96,7 +90,6 @@ async function loadCatalog(searchQuery = '') {
             );
         }
         
-        // Сохраняем в глобальную переменную
         window.catalogData = catalogData;
         
         if (catalogData.length === 0) {
@@ -105,10 +98,8 @@ async function loadCatalog(searchQuery = '') {
             return;
         }
         
-        // Проверяем что уже в избранном
         const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
         
-        // Рендерим карточки
         catalog.innerHTML = catalogData.map((model, index) => {
             const isFavorite = favorites.includes(model.id);
             return `
@@ -122,7 +113,7 @@ async function loadCatalog(searchQuery = '') {
                         </a>
                         <div class="masonry-overlay">
                             <button class="overlay-btn overlay-save ${isFavorite ? 'saved' : ''}" onclick="toggleFavoriteFromGrid(${model.id}, this)">
-                                ${isFavorite ? 'сохранено' : 'сохранить'}
+                                ${isFavorite ? 'Сохранено' : 'Сохранить'}
                             </button>
                             <button class="overlay-btn overlay-download" onclick="handleDownload('${model.downloadSrc}', '${model.title}.glb')">
                                 скачать
@@ -146,31 +137,25 @@ async function loadModelPage() {
     const container = document.getElementById("model-page-content");
     if (!container) return;
     
-    // Получаем id модели из URL
     const urlParams = new URLSearchParams(window.location.search);
     const modelId = parseInt(urlParams.get("id"));
     
     container.innerHTML = '<div style="text-align:center; padding:60px; color:var(--text-secondary);">Загрузка...</div>';
     
     try {
-        // Если данные ещё не загружены — грузим
         if (!window.catalogData) window.catalogData = await fetchModelsData();
         
-        // Ищем нужную модель по id
         const model = window.catalogData.find(m => m.id === modelId);
         if (!model) {
             container.innerHTML = '<div style="text-align:center; padding:60px; color:var(--text-secondary);">Модель не найдена</div>';
             return;
         }
         
-        // Проверяем, в избранном ли модель
         const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
         const isFavorite = favorites.includes(modelId);
         
-        // Другие модели
         const otherModels = window.catalogData.filter(m => m.id !== modelId).slice(0, 8);
         
-        // Собираем всю разметку страницы
         container.innerHTML = `
             <div class="viewer-wrapper">
                 <model-viewer 
@@ -187,8 +172,8 @@ async function loadModelPage() {
                 <button class="btn-action btn-download" onclick="handleDownload('${model.downloadSrc}', '${model.title}.glb')">
                     Скачать
                 </button>
-                <button class="btn-action" onclick="toggleFavorite(${modelId}, this)">
-                    ${isFavorite ? 'в избранном' : 'в избранное'}
+                <button class="btn-action ${isFavorite ? 'saved' : ''}" onclick="toggleFavorite(${modelId}, this)">
+                    ${isFavorite ? 'Сохранено' : 'Сохранить'}
                 </button>
             </div>
             
@@ -198,7 +183,9 @@ async function loadModelPage() {
                 
                 <div class="author-row">
                     <a href="author.html?name=${encodeURIComponent(model.author)}" class="author-link">
-                        <div class="author-avatar-small">${model.author.charAt(0)}</div>
+                        <div class="author-avatar-small">
+                            <img src="${model.authorAvatar}" alt="${model.author}" onerror="this.style.display='none'; this.parentElement.textContent='${model.author.charAt(0)}'">
+                        </div>
                         <span class="author-name-small">${model.author}</span>
                     </a>
                 </div>
@@ -226,7 +213,6 @@ async function loadModelPage() {
 
 // Скачивание файла
 function handleDownload(url, filename) {
-    // Создаём невидимую ссылку и кликаем по ней
     const a = document.createElement('a');
     a.href = url;
     a.download = filename;
@@ -242,16 +228,15 @@ function toggleFavorite(modelId, btn) {
     const index = favorites.indexOf(modelId);
     
     if (index > -1) {
-        // Убираем из избранного
         favorites.splice(index, 1);
-        btn.textContent = 'в избранное';
+        btn.textContent = 'Сохранить';
+        btn.classList.remove('saved');
     } else {
-        // Добавляем в избранное
         favorites.push(modelId);
-        btn.textContent = 'в избранном';
+        btn.textContent = 'Сохранено';
+        btn.classList.add('saved');
     }
     
-    // Сохраняем обратно в localStorage
     localStorage.setItem('favorites', JSON.stringify(favorites));
 }
 
@@ -262,11 +247,11 @@ function toggleFavoriteFromGrid(modelId, btn) {
     
     if (index > -1) {
         favorites.splice(index, 1);
-        btn.textContent = 'сохранить';
+        btn.textContent = 'Сохранить';
         btn.classList.remove('saved');
     } else {
         favorites.push(modelId);
-        btn.textContent = 'сохранено';
+        btn.textContent = 'Сохранено';
         btn.classList.add('saved');
     }
     
@@ -319,7 +304,7 @@ async function loadFavorites() {
                     </a>
                     <div class="masonry-overlay">
                         <button class="overlay-btn overlay-save saved" onclick="removeFromFavorites(${model.id}, this)">
-                            сохранено
+                            Сохранено
                         </button>
                         <button class="overlay-btn overlay-download" onclick="handleDownload('${model.downloadSrc}', '${model.title}.glb')">
                             скачать
@@ -404,10 +389,8 @@ async function loadAuthorsPage() {
     container.innerHTML = '<div style="text-align:center; padding:60px; color:var(--text-secondary);">Загрузка...</div>';
     
     try {
-        // Загружаем данные если ещё не загружены
         if (!window.catalogData) window.catalogData = await fetchModelsData();
         
-        // Группируем модели по авторам
         const authorsMap = {};
         window.catalogData.forEach(model => {
             if (!authorsMap[model.author]) {
@@ -416,10 +399,8 @@ async function loadAuthorsPage() {
             authorsMap[model.author].push(model);
         });
         
-        // Проверяем что уже в избранном
         const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
         
-        // Рендерим страницу
         container.innerHTML = `
             <h1 class="authors-page-title">Авторы</h1>
             
@@ -428,7 +409,9 @@ async function loadAuthorsPage() {
                     <div class="author-card">
                         <a href="author.html?name=${encodeURIComponent(authorName)}" class="author-card-clickable">
                             <div class="author-card-left">
-                                <div class="author-card-avatar">${authorName.charAt(0)}</div>
+                                <div class="author-card-avatar">
+                                    <img src="img/${authorName}.png" alt="${authorName}" onerror="this.style.display='none'; this.parentElement.textContent='${authorName.charAt(0)}'">
+                                </div>
                                 <div class="author-card-info">
                                     <h2 class="author-card-name">${authorName}</h2>
                                     <p class="author-card-stats">${models.length} ${getModelsWord(models.length)}</p>
@@ -454,7 +437,7 @@ async function loadAuthorsPage() {
                                         </a>
                                         <div class="masonry-overlay">
                                             <button class="overlay-btn overlay-save ${isFavorite ? 'saved' : ''}" onclick="toggleFavoriteFromGrid(${model.id}, this)">
-                                                ${isFavorite ? 'сохранено' : 'сохранить'}
+                                                ${isFavorite ? 'Сохранено' : 'Сохранить'}
                                             </button>
                                             <button class="overlay-btn overlay-download" onclick="handleDownload('${model.downloadSrc}', '${model.title}.glb')">
                                                 скачать
@@ -494,37 +477,32 @@ async function loadAuthorPage() {
     const container = document.getElementById("author-page-content");
     if (!container) return;
     
-    // Получаем имя автора из URL
     const urlParams = new URLSearchParams(window.location.search);
     const authorName = urlParams.get("name");
     
     container.innerHTML = '<div style="text-align:center; padding:60px; color:var(--text-secondary);">Загрузка...</div>';
     
     try {
-        // Загружаем данные если ещё не загружены
         if (!window.catalogData) window.catalogData = await fetchModelsData();
         
-        // Фильтруем модели этого автора
         const authorModels = window.catalogData.filter(m => m.author === authorName);
         
-        // Если автор не найден
         if (authorModels.length === 0) {
             container.innerHTML = '<div style="text-align:center; padding:60px; color:var(--text-secondary);">Автор не найден</div>';
             return;
         }
         
-        // Проверяем что уже в избранном
         const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
         
-        // Проверяем подписку
         const subscriptions = JSON.parse(localStorage.getItem('subscriptions') || '[]');
         const isSubscribed = subscriptions.includes(authorName);
         
-        // Рендерим страницу
         container.innerHTML = `
             <div class="author-header">
                 <div class="author-header-top">
-                    <div class="author-avatar-large">${authorName.charAt(0)}</div>
+                    <div class="author-avatar-large">
+                        <img src="img/${authorName}.png" alt="${authorName}" onerror="this.style.display='none'; this.parentElement.textContent='${authorName.charAt(0)}'">
+                    </div>
                     <div class="author-header-info">
                         <h1 class="author-name-large">${authorName}</h1>
                         <p class="author-stats">${authorModels.length} ${getModelsWord(authorModels.length)}</p>
@@ -558,7 +536,7 @@ async function loadAuthorPage() {
                                     </a>
                                     <div class="masonry-overlay">
                                         <button class="overlay-btn overlay-save ${isFavorite ? 'saved' : ''}" onclick="toggleFavoriteFromGrid(${model.id}, this)">
-                                            ${isFavorite ? 'сохранено' : 'сохранить'}
+                                            ${isFavorite ? 'Сохранено' : 'Сохранить'}
                                         </button>
                                         <button class="overlay-btn overlay-download" onclick="handleDownload('${model.downloadSrc}', '${model.title}.glb')">
                                             скачать
@@ -584,11 +562,9 @@ function toggleSubscription(authorName, btn) {
     const index = subscriptions.indexOf(authorName);
     
     if (index > -1) {
-        // Отписаться
         subscriptions.splice(index, 1);
         btn.textContent = 'Подписаться';
     } else {
-        // Подписаться
         subscriptions.push(authorName);
         btn.textContent = 'Вы подписаны';
     }
@@ -596,9 +572,8 @@ function toggleSubscription(authorName, btn) {
     localStorage.setItem('subscriptions', JSON.stringify(subscriptions));
 }
 
-// Переключить таб (Созданные / Сохраненные)
+// Переключить таб
 function switchTab(tab, authorName, btn) {
-    // Обновляем активный таб
     const tabs = btn.parentElement.querySelectorAll('.tab-btn');
     tabs.forEach(t => t.classList.remove('active'));
     btn.classList.add('active');
@@ -606,7 +581,6 @@ function switchTab(tab, authorName, btn) {
     const container = document.getElementById("author-models-container");
     
     if (tab === 'created') {
-        // Показываем модели автора
         const authorModels = window.catalogData.filter(m => m.author === authorName);
         const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
         
@@ -625,7 +599,7 @@ function switchTab(tab, authorName, btn) {
                                 </a>
                                 <div class="masonry-overlay">
                                     <button class="overlay-btn overlay-save ${isFavorite ? 'saved' : ''}" onclick="toggleFavoriteFromGrid(${model.id}, this)">
-                                        ${isFavorite ? 'сохранено' : 'сохранить'}
+                                        ${isFavorite ? 'Сохранено' : 'Сохранить'}
                                     </button>
                                     <button class="overlay-btn overlay-download" onclick="handleDownload('${model.downloadSrc}', '${model.title}.glb')">
                                         скачать
@@ -638,7 +612,6 @@ function switchTab(tab, authorName, btn) {
             </div>
         `;
     } else if (tab === 'saved') {
-        // Показываем пустой список
         container.innerHTML = `
             <div style="text-align:center; padding:60px 20px;">
                 <h2 style="font-size:24px; margin-bottom:8px;">Пока пусто</h2>
@@ -662,14 +635,12 @@ function setupSearch() {
     });
 }
 
-// Переключение тёмной/светлой темы
+// Переключение темы
 function setupTheme() {
-    // Проверяем сохранённую тему
     if (localStorage.getItem("theme") === "dark") {
         document.body.classList.add("dark-theme");
     }
     
-    // Кнопка темы на десктопе (в боковом меню)
     const themeBtn = document.getElementById("theme-toggle");
     if (themeBtn) {
         themeBtn.addEventListener("click", () => {
@@ -679,7 +650,6 @@ function setupTheme() {
         });
     }
     
-    // Кнопка темы на мобильных (над аватаром)
     const themeBtnMobile = document.getElementById("theme-toggle-mobile");
     if (themeBtnMobile) {
         themeBtnMobile.addEventListener("click", () => {
@@ -696,13 +666,11 @@ function setupUserMenu() {
     const dropdown = document.getElementById("user-dropdown");
     
     if (avatarBtn && dropdown) {
-        // Открыть/закрыть меню при клике на аватар
         avatarBtn.addEventListener("click", (e) => {
             e.stopPropagation();
             dropdown.classList.toggle("show");
         });
         
-        // Закрыть меню при клике в любом другом месте
         document.addEventListener("click", (e) => {
             if (!dropdown.contains(e.target) && e.target !== avatarBtn) {
                 dropdown.classList.remove("show");
@@ -719,11 +687,8 @@ const MATERIAL_PRICES = {
 };
 
 function calculatePrintCost(weight, material, infill) {
-    // Стоимость филамента
     const materialCost = weight * MATERIAL_PRICES[material];
-    
-    // Время печати (упрощенно)
-    const printTime = (weight / (infill / 100)) * 1.5; // минуты
+    const printTime = (weight / (infill / 100)) * 1.5;
     
     return {
         materialCost: materialCost.toFixed(2),
@@ -739,14 +704,12 @@ function setupCalculator() {
     
     if (!form) return;
     
-    // Обновляем значение заполненности
     if (infillSlider && infillValue) {
         infillSlider.addEventListener("input", (e) => {
             infillValue.textContent = e.target.value;
         });
     }
     
-    // Обработка формы
     form.addEventListener("submit", (e) => {
         e.preventDefault();
         
@@ -756,7 +719,6 @@ function setupCalculator() {
         
         const result = calculatePrintCost(weight, material, infill);
         
-        // Показываем результат
         document.getElementById("result-material").textContent = `${result.materialCost}₽`;
         document.getElementById("result-time").textContent = `${result.printTime} мин`;
         document.getElementById("result-total").textContent = `${result.total}₽`;
@@ -781,7 +743,6 @@ document.addEventListener("DOMContentLoaded", () => {
     setupSearch();
     setupCalculator();
     
-    // Загружаем контент в зависимости от страницы
     if (document.getElementById("catalog")) loadCatalog();
     if (document.getElementById("model-page-content")) loadModelPage();
     if (document.getElementById("favorites-grid")) loadFavorites();

@@ -1,30 +1,32 @@
-/* сброс стилей — чтобы везде одинаково */
+/* сброс стилей */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-/* цвета светлой темы */
+/* цвета светлой темы — Halo (нимб) */
 :root {
-    --bg-primary: #ffffff;
-    --bg-secondary: #f0f0f0;
-    --text-primary: #111111;
-    --text-secondary: #767676;
-    --accent: #e60023;
-    --accent-hover: #ad081b;
-    --border: #ddd;
-    --shadow: rgba(0, 0, 0, 0.1);
+    --bg-primary: #FFFDF7;
+    --bg-secondary: #F5EDDA;
+    --text-primary: #2C2416;
+    --text-secondary: #8B7D6B;
+    --accent: #D4AF37;
+    --accent-hover: #B8941F;
+    --border: #E8DCC4;
+    --shadow: rgba(212, 175, 55, 0.15);
+    --glow: rgba(212, 175, 55, 0.4);
 }
 
 /* цвета тёмной темы */
 body.dark-theme {
-    --bg-primary: #1a1a1a;
-    --bg-secondary: #2d2d2d;
-    --text-primary: #e0e0e0;
-    --text-secondary: #a0a0a0;
-    --border: #404040;
-    --shadow: rgba(0, 0, 0, 0.4);
+    --bg-primary: #0F1419;
+    --bg-secondary: #1A2332;
+    --text-primary: #F5EDDA;
+    --text-secondary: #A89B8C;
+    --border: #2A3545;
+    --shadow: rgba(0, 0, 0, 0.5);
+    --glow: rgba(212, 175, 55, 0.3);
 }
 
 /* база */
@@ -66,11 +68,45 @@ body {
 }
 
 .site-logo {
-    font-size: 24px;
-    font-weight: bold;
-    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 8px;
     text-decoration: none;
-    margin-bottom: 8px;
+    overflow: hidden;
+}
+
+.site-logo img {
+    width: 40px !important;
+    height: 40px !important;
+    object-fit: contain;
+    filter: drop-shadow(0 0 6px var(--glow));
+    transition: transform 0.2s;
+    max-width: 100%;
+}
+
+/* Логотип: по умолчанию показываем haloblack (светлая тема) */
+.site-logo .icon-light {
+    display: block;
+}
+
+.site-logo .icon-dark {
+    display: none;
+}
+
+/* Тёмная тема: показываем halo (золотой) */
+body.dark-theme .site-logo .icon-light {
+    display: none;
+}
+
+body.dark-theme .site-logo .icon-dark {
+    display: block;
+}
+
+.site-logo:hover img {
+    transform: scale(1.1);
 }
 
 .sidebar-nav {
@@ -97,16 +133,15 @@ body {
 
 .nav-link:hover,
 .nav-link.active {
-    background-color: var(--text-primary);
-    color: var(--bg-primary);
+    background-color: var(--accent);
+    color: #FFFDF7;
 }
 
-/* подсказка при наведении на пункт меню */
 .nav-label {
     position: absolute;
     left: 60px;
-    background-color: var(--text-primary);
-    color: var(--bg-primary);
+    background-color: var(--accent);
+    color: #FFFDF7;
     padding: 6px 10px;
     border-radius: 8px;
     font-size: 13px;
@@ -122,7 +157,49 @@ body {
     visibility: visible;
 }
 
-/* кнопка смены темы */
+/* === ИКОНКИ НАВИГАЦИИ === */
+
+.nav-icon {
+    width: 24px;
+    height: 24px;
+}
+
+.icon-light {
+    display: block;
+}
+
+.icon-dark {
+    display: none;
+}
+
+body.dark-theme .icon-light {
+    display: none;
+}
+
+body.dark-theme .icon-dark {
+    display: block;
+}
+
+/* Активная страница: всегда светлая иконка */
+.nav-link.active .icon-light {
+    display: block !important;
+}
+
+.nav-link.active .icon-dark {
+    display: none !important;
+}
+
+/* Наведение: всегда светлая иконка */
+.nav-link:hover .icon-light {
+    display: block !important;
+}
+
+.nav-link:hover .icon-dark {
+    display: none !important;
+}
+
+/* === КНОПКА ТЕМЫ === */
+
 .theme-btn {
     width: 48px;
     height: 48px;
@@ -133,13 +210,21 @@ body {
     cursor: pointer;
     font-size: 20px;
     font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .theme-btn:hover {
     background-color: var(--bg-secondary);
 }
 
-/* кнопка темы для мобильных */
+.theme-icon {
+    width: 24px;
+    height: 24px;
+}
+
+/* Мобильная кнопка темы */
 .theme-btn-mobile {
     display: none;
     width: 36px;
@@ -151,15 +236,18 @@ body {
     cursor: pointer;
     font-size: 14px;
     font-weight: bold;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
 }
 
 .theme-btn-mobile:hover {
     background-color: var(--accent);
-    color: white;
+    color: #FFFDF7;
     border-color: var(--accent);
 }
 
-/* ВЕРХНЯЯ ПАНЕЛЬ */
+/* === ВЕРХНЯЯ ПАНЕЛЬ === */
 
 .top-bar {
     position: fixed;
@@ -183,15 +271,17 @@ body {
 .search-input {
     width: 100%;
     padding: 14px 20px;
-    border: none;
+    border: 1px solid var(--border);
     background-color: var(--bg-secondary);
     border-radius: 24px;
     font-size: 16px;
     outline: none;
+    color: var(--text-primary);
 }
 
 .search-input:focus {
-    box-shadow: 0 0 0 3px rgba(230, 0, 23, 0.2);
+    box-shadow: 0 0 0 3px var(--glow);
+    border-color: var(--accent);
 }
 
 /* меню пользователя */
@@ -214,13 +304,14 @@ body {
     width: 40px;
     height: 40px;
     background-color: var(--accent);
-    color: #fff;
+    color: #FFFDF7;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: bold;
     font-size: 16px;
+    box-shadow: 0 0 10px var(--glow);
 }
 
 /* выпадающее меню */
@@ -255,13 +346,14 @@ body {
     width: 48px;
     height: 48px;
     background-color: var(--accent);
-    color: white;
+    color: #FFFDF7;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: bold;
     font-size: 20px;
+    box-shadow: 0 0 10px var(--glow);
 }
 
 .dropdown-divider {
@@ -321,12 +413,14 @@ body {
     border-radius: 16px;
     overflow: hidden;
     background-color: var(--bg-secondary);
-    transition: transform 0.2s;
+    transition: transform 0.2s, box-shadow 0.2s;
     aspect-ratio: 1 / 1;
+    border: 1px solid var(--border);
 }
 
 .masonry-item:hover .masonry-image-wrapper {
     transform: translateY(-4px);
+    box-shadow: 0 8px 20px var(--shadow);
 }
 
 .masonry-image-wrapper img {
@@ -345,7 +439,7 @@ body {
     justify-content: center;
     font-size: 64px;
     font-weight: bold;
-    color: var(--text-secondary);
+    color: var(--accent);
     background-color: var(--bg-secondary);
 }
 
@@ -381,6 +475,7 @@ body {
     transition: opacity 0.2s ease;
     pointer-events: none;
     z-index: 2;
+    background: linear-gradient(to bottom, rgba(212, 175, 55, 0.2), rgba(44, 36, 22, 0.8));
 }
 
 .masonry-item:hover .masonry-overlay {
@@ -400,30 +495,30 @@ body {
 }
 
 .overlay-save {
-    background-color: #e60023;
-    color: white;
+    background-color: var(--accent);
+    color: #FFFDF7;
 }
 
 .overlay-save:hover {
-    background-color: #ad081b;
+    background-color: var(--accent-hover);
 }
 
 .overlay-save.saved {
-    background-color: #111;
-    color: white;
+    background-color: #2C2416;
+    color: #FFFDF7;
 }
 
 .overlay-save.saved:hover {
-    background-color: #e60023;
+    background-color: var(--accent);
 }
 
 .overlay-download {
-    background-color: rgba(0, 0, 0, 0.7);
-    color: white;
+    background-color: rgba(44, 36, 22, 0.85);
+    color: #FFFDF7;
 }
 
 .overlay-download:hover {
-    background-color: rgba(0, 0, 0, 0.9);
+    background-color: rgba(44, 36, 22, 0.95);
 }
 
 /* СТРАНИЦА МОДЕЛИ */
@@ -436,9 +531,10 @@ body {
     border-radius: 12px;
     margin-bottom: 16px;
     overflow: hidden;
+    border: 1px solid var(--border);
 }
 
-/* кнопки: Скачать / В избранное */
+/* кнопки: Скачать / Сохранить */
 .model-actions {
     display: flex;
     gap: 12px;
@@ -446,32 +542,48 @@ body {
     flex-wrap: wrap;
 }
 
+/* кнопка "Сохранить" — золотая */
 .btn-action {
     padding: 12px 24px;
-    border: 1px solid var(--border);
+    border: 2px solid var(--accent);
     border-radius: 24px;
-    background: var(--bg-primary);
-    color: var(--text-primary);
+    background-color: var(--accent);
+    color: #FFFDF7;
     cursor: pointer;
     font-size: 14px;
     font-weight: 600;
     transition: all 0.2s;
+    box-shadow: 0 2px 8px var(--glow);
 }
 
 .btn-action:hover {
-    background-color: var(--bg-secondary);
-    border-color: var(--text-secondary);
+    background-color: var(--accent-hover);
+    border-color: var(--accent-hover);
 }
 
-/* красная кнопка «Скачать» */
+/* кнопка "Сохранено" — тёмная */
+.btn-action.saved {
+    background-color: #1A2332;
+    color: #F5EDDA;
+    border-color: var(--accent);
+    box-shadow: none;
+}
+
+.btn-action.saved:hover {
+    background-color: #2A3545;
+    border-color: var(--accent-hover);
+}
+
+/* золотая кнопка «Скачать» */
 .btn-download {
-    background-color: #e60023;
-    color: white;
+    background-color: var(--accent);
+    color: #FFFDF7;
     border: none;
+    box-shadow: 0 2px 8px var(--glow);
 }
 
 .btn-download:hover {
-    background-color: #ad081b;
+    background-color: var(--accent-hover);
 }
 
 /* блок с информацией о модели */
@@ -519,7 +631,7 @@ body {
     width: 36px;
     height: 36px;
     background-color: var(--accent);
-    color: white;
+    color: #FFFDF7;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -527,6 +639,13 @@ body {
     font-weight: bold;
     font-size: 14px;
     flex-shrink: 0;
+    overflow: hidden;
+}
+
+.author-avatar-small img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .author-name-small {
@@ -552,10 +671,12 @@ body {
     overflow: hidden;
     transition: transform 0.2s;
     background-color: var(--bg-primary);
+    border: 1px solid var(--border);
 }
 
 .other-model-card:hover {
     transform: translateY(-4px);
+    box-shadow: 0 8px 20px var(--shadow);
 }
 
 .other-model-card img {
@@ -575,7 +696,7 @@ body {
     justify-content: center;
     font-size: 64px;
     font-weight: bold;
-    color: var(--text-secondary);
+    color: var(--accent);
 }
 
 /* АДАПТИВНОСТЬ */
@@ -606,7 +727,7 @@ body {
         gap: 4px;
     }
 
-    .site-logo { margin-bottom: 0; font-size: 20px; }
+    .site-logo { margin-bottom: 0; }
     .nav-link { width: 36px; height: 36px; font-size: 16px; }
     .nav-label { display: none; }
     .sidebar-bottom { display: none; }
@@ -704,7 +825,7 @@ body {
     }
 
     .theme-btn-mobile {
-        display: block;
+        display: flex;
         width: 36px;
         height: 36px;
         border-radius: 50%;
@@ -780,6 +901,7 @@ body {
     background-color: var(--bg-secondary);
     border-radius: 16px;
     transition: all 0.2s;
+    border: 1px solid var(--border);
 }
 
 /* кликабельная область автора */
@@ -806,7 +928,7 @@ body {
     width: 64px;
     height: 64px;
     background-color: var(--accent);
-    color: white;
+    color: #FFFDF7;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -814,6 +936,14 @@ body {
     font-weight: bold;
     font-size: 24px;
     flex-shrink: 0;
+    box-shadow: 0 0 12px var(--glow);
+    overflow: hidden;
+}
+
+.author-card-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .author-card-info {
@@ -848,8 +978,9 @@ body {
 }
 
 .toggle-models-btn:hover {
-    background-color: var(--bg-secondary);
-    border-color: var(--text-secondary);
+    background-color: var(--accent);
+    color: #FFFDF7;
+    border-color: var(--accent);
 }
 
 /* горизонтальная сетка моделей для страницы авторов */
@@ -875,12 +1006,12 @@ body {
 }
 
 .authors-models-row::-webkit-scrollbar-thumb {
-    background: var(--border);
+    background: var(--accent);
     border-radius: 3px;
 }
 
 .authors-models-row::-webkit-scrollbar-thumb:hover {
-    background: var(--text-secondary);
+    background: var(--accent-hover);
 }
 
 .authors-models-row .masonry-item {
@@ -902,6 +1033,7 @@ body {
     padding: 32px;
     background-color: var(--bg-secondary);
     border-radius: 16px;
+    border: 1px solid var(--border);
 }
 
 .author-header-top {
@@ -914,7 +1046,7 @@ body {
     width: 120px;
     height: 120px;
     background-color: var(--accent);
-    color: white;
+    color: #FFFDF7;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -922,6 +1054,14 @@ body {
     font-weight: bold;
     font-size: 48px;
     flex-shrink: 0;
+    box-shadow: 0 0 20px var(--glow);
+    overflow: hidden;
+}
+
+.author-avatar-large img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .author-header-info {
@@ -947,18 +1087,19 @@ body {
 
 .btn-primary {
     padding: 12px 24px;
-    background-color: #e60023;
-    color: white;
+    background-color: var(--accent);
+    color: #FFFDF7;
     border: none;
     border-radius: 24px;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     transition: background-color 0.2s;
+    box-shadow: 0 2px 8px var(--glow);
 }
 
 .btn-primary:hover {
-    background-color: #ad081b;
+    background-color: var(--accent-hover);
 }
 
 .btn-secondary {
@@ -975,6 +1116,7 @@ body {
 
 .btn-secondary:hover {
     background-color: var(--bg-secondary);
+    border-color: var(--accent);
 }
 
 /* Табы */
@@ -1004,8 +1146,8 @@ body {
 }
 
 .tab-btn.active {
-    background-color: var(--text-primary);
-    color: var(--bg-primary);
+    background-color: var(--accent);
+    color: #FFFDF7;
 }
 
 /* СТРАНИЦА ГАЙДА */
@@ -1033,7 +1175,7 @@ body {
     font-weight: 700;
     margin-bottom: 32px;
     padding-bottom: 16px;
-    border-bottom: 2px solid var(--border);
+    border-bottom: 2px solid var(--accent);
 }
 
 .guide-block {
@@ -1072,7 +1214,7 @@ body {
     align-items: center;
     justify-content: center;
     margin: 24px 0;
-    border: 2px dashed var(--border);
+    border: 2px dashed var(--accent);
 }
 
 .guide-table {
@@ -1082,6 +1224,7 @@ body {
     background-color: var(--bg-primary);
     border-radius: 8px;
     overflow: hidden;
+    border: 1px solid var(--border);
 }
 
 .guide-table th,
@@ -1092,7 +1235,8 @@ body {
 }
 
 .guide-table th {
-    background-color: var(--bg-secondary);
+    background-color: var(--accent);
+    color: #FFFDF7;
     font-weight: 600;
 }
 
@@ -1107,6 +1251,7 @@ body {
     background-color: var(--bg-secondary);
     padding: 20px;
     border-radius: 12px;
+    border: 1px solid var(--border);
 }
 
 .setting-card h4 {
@@ -1137,11 +1282,13 @@ body {
     background-color: var(--bg-secondary);
     padding: 24px;
     border-radius: 16px;
+    border: 1px solid var(--border);
 }
 
 .material-card h3 {
     font-size: 22px;
     margin-bottom: 12px;
+    color: var(--accent);
 }
 
 .material-card h4 {
@@ -1180,6 +1327,7 @@ body {
     padding: 32px;
     border-radius: 16px;
     margin-bottom: 32px;
+    border: 1px solid var(--border);
 }
 
 .form-group {
@@ -1221,19 +1369,21 @@ body {
     border-radius: 50%;
     background: var(--accent);
     cursor: pointer;
+    box-shadow: 0 0 6px var(--glow);
 }
 
 .calc-btn {
     width: 100%;
     padding: 14px;
     background-color: var(--accent);
-    color: white;
+    color: #FFFDF7;
     border: none;
     border-radius: 24px;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
     transition: background-color 0.2s;
+    box-shadow: 0 2px 8px var(--glow);
 }
 
 .calc-btn:hover {
@@ -1244,6 +1394,7 @@ body {
     background-color: var(--bg-secondary);
     padding: 32px;
     border-radius: 16px;
+    border: 1px solid var(--border);
 }
 
 .calc-result h2 {
@@ -1262,12 +1413,14 @@ body {
     background-color: var(--bg-primary);
     padding: 20px;
     border-radius: 12px;
+    border: 1px solid var(--border);
 }
 
 .result-item.total {
     grid-column: 1 / -1;
     background-color: var(--accent);
-    color: white;
+    color: #FFFDF7;
+    border-color: var(--accent);
 }
 
 .result-label {
@@ -1277,7 +1430,7 @@ body {
 }
 
 .result-item.total .result-label {
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 253, 247, 0.9);
 }
 
 .result-value {
@@ -1287,7 +1440,7 @@ body {
 }
 
 .result-item.total .result-value {
-    color: white;
+    color: #FFFDF7;
     font-size: 32px;
 }
 

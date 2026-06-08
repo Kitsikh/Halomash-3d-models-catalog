@@ -4,20 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Гайд - HaloMesh</title>
+    <link rel="icon" type="image/png" href="img/halo.png">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <aside class="sidebar">
         <div class="sidebar-top">
-            <a href="index.html" class="site-logo">HM</a>
+            <a href="index.html" class="site-logo">
+                <img src="img/haloblack.png" class="icon-light" alt="HaloMesh">
+                <img src="img/halo.png" class="icon-dark" alt="HaloMesh">
+            </a>
             <nav class="sidebar-nav">
-                <a href="index.html" class="nav-link">Г<span class="nav-label">Главная</span></a>
-                <a href="favorites.html" class="nav-link">И<span class="nav-label">Избранное</span></a>
-                <a href="authors.html" class="nav-link">А<span class="nav-label">Авторы</span></a>
+                <a href="index.html" class="nav-link">
+                    <img src="img/domicwhite.png" class="nav-icon icon-light" alt="Главная">
+                    <img src="img/domicblack.png" class="nav-icon icon-dark" alt="Главная">
+                    <span class="nav-label">Главная</span>
+                </a>
+                <a href="favorites.html" class="nav-link">
+                    <img src="img/bookwhite.png" class="nav-icon icon-light" alt="Избранное">
+                    <img src="img/bookblack.png" class="nav-icon icon-dark" alt="Избранное">
+                    <span class="nav-label">Избранное</span>
+                </a>
+                <a href="authors.html" class="nav-link">
+                    <img src="img/peoplewhite.png" class="nav-icon icon-light" alt="Авторы">
+                    <img src="img/peopleblack.png" class="nav-icon icon-dark" alt="Авторы">
+                    <span class="nav-label">Авторы</span>
+                </a>
             </nav>
         </div>
         <div class="sidebar-bottom">
-            <button id="theme-toggle" class="theme-btn">Т</button>
+            <button id="theme-toggle" class="theme-btn">
+                <img src="img/sun.png" class="theme-icon icon-light" alt="Светлая тема">
+                <img src="img/sparkles.png" class="theme-icon icon-dark" alt="Тёмная тема">
+            </button>
         </div>
     </aside>
 
@@ -26,7 +45,10 @@
             <input type="text" class="search-input" placeholder="Поиск моделей...">
         </div>
         <div class="user-menu">
-            <button id="theme-toggle-mobile" class="theme-btn-mobile">Т</button>
+            <button id="theme-toggle-mobile" class="theme-btn-mobile">
+                <img src="img/sun.png" class="theme-icon icon-light" alt="Светлая тема">
+                <img src="img/sparkles.png" class="theme-icon icon-dark" alt="Тёмная тема">
+            </button>
             <button class="avatar-btn" id="avatar-toggle">
                 <div class="avatar-circle">К</div>
             </button>
@@ -36,7 +58,7 @@
                 </div>
                 <div class="dropdown-divider"></div>
                 <a href="calculator.html" class="dropdown-item">
-                    <span>Калькулятор стоимости 3D-печати</span>
+                    <span>Калькулятор</span>
                 </a>
                 <a href="guide.html" class="dropdown-item">
                     <span>Помощь</span>
